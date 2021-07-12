@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Shopping Cart</title>
+    <meta charset="UTF-8">
+    <style>
+        .item {
+            margin: 7px;
+            border: 1px solid black;
+            padding: 2%;
+            height: 300px;
+            width: 25%;
+            float: left;
+        }
+
+        .itemPic {
+            max-width: 100%;
+        }
+
+        .addBtn {
+            padding: 5px;
+            background-color: green;
+            color: azure;
+            border: 1px solid black;
+            border-radius: 10%;
+            font-size: 0.8em;
+            display: inline-block;
+        }
+
+        table,
+        th,
+        td {
+            text-align: center;
+            border: 1px solid black;
+            padding: 5px;
+        }
+
+        .lastTd {
+            border: none;
+        }
+
+        .removeBtn {
+            background-color: red;
+            border: 1px solid black;
+            border-radius: 10px;
+            padding: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='layout'></div>
+    <div id='cart'></div>
+
+    <script>
+        let items = [
+            { name: "Item 1", color: "White", cost: 83 },
+            { name: "Item 2", color: "Black", cost: 17 },
+            { name: "Item 3", color: "Red", cost: 66 },
+            { name: "Item 4", color: "Blue", cost: 44 },
+            { name: "Item 5", color: "Silver", cost: 52 }
+        ];
+
+        let html = '';
+        let cart = [];
+        window.onload = initiate;
+
+        function initiate() {
+            buildLayout();
+            let btns = document.querySelectorAll(".addBtn");
+            for (let i = 0; i < btns.length; i++) {
+                btns[i].addEventListener('click', function () {
+                    addToCart();
+                })
+            }
+            outputCart();
+        }
+
+        function buildLayout() {
+            let x = 0;
+            items.forEach(function (item) {
+                html += '<div class="item"><h3>' + item.name + '</h3><img class="itemPic" src="http://placehold.it/350x150" alt="Picture of item"></br>' + item.color + '</br>' + formatCost(item.cost) + '</br><div class="addBtn" data-name="' + item.name + '" data-color="' + item.color + '" data-cost="' + item.cost + '" data-id="' + x + '">Add to cart</div></div>';
+                x++;
+            });
+            document.getElementById('layout').innerHTML = html;
+        }
+
+        function formatCost(cost) {
+            return 'EUR' + cost.toFixed(2);
+        }
+
+        function addToCart() {
+            let itemInfo = event.target.dataset;
+            itemInfo.qty = 1;
+            let itemInCart = false;
+            cart.forEach(function (item) {
+                if (item.id == itemInfo.id) {
+                    item.qty = parseInt(item.qty) + parseInt(itemInfo.qty);
+                    itemInCart = true;
+                }
+            });
+            if (!itemInCart) {
+                cart.push(itemInfo);
+            }
+            localStorage.setItem('cartItem', JSON.stringify(cart));
+            outputCart();
+        }
+
+        function outputCart() {
+            if (localStorage.getItem('cartItem') != null) {
+                cart = JSON.parse(localStorage.getItem('cartItem'));
+            }
+            let html = '<table><tr><th>Item</th><th>Color</th><th>Cost</th><th>Quantity</th><th>Subtotal</th><th>Removal Option</th></tr>';
+            let totalCost = 0;
+            cart.forEach(function (item) {
+                let subTotal = item.qty * item.cost;
+                totalCost += subTotal;
+                html += '<tr><td>' + item.name + '</td><td>' + item.color + '</td><td>' + item.cost + '</td><td>' + item.qty + '</td><td>' + subTotal + '</td><td class="lastTd"><span class="removeBtn" onclick="removeItem(' + item.id + ',' + item.qty + ')">Remove</span></td></tr>';
+            });
+            html += '<tr><td colspan=6>Total ' + formatCost(totalCost) + '</td></tr></table>';
+            document.getElementById("cart").innerHTML = html;
+        }
+
+        function removeItem(id, qty) {
+            for (let i = 0; i < cart.length; i++) {
+                if (cart[i].id == id) {
+                    if(cart[i].qty > 1) {
+                        cart[i].qty--;
+                    } else {
+                        let removal = cart.splice(i, 1);
+                    }
+                }
+            }
+            localStorage.setItem('cartItem', JSON.stringify(cart));
+            outputCart();
+        }
+
+    </script>
+</body>
+
+</html>
